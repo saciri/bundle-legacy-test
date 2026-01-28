@@ -2,48 +2,52 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8" />
-<title>Baseline – Bundle Legacy</title>
-<!-- 1️⃣ Lightning Out (OBBLIGATORIO) -->
-<script src=""https://ppcrmagenti.axa-italia.it/tabs/lightning/lightning.out.js"></script>
+<title>Baseline – Bundle Legacy (iframe)</title>
+<!-- Lightning Out -->
+<script src="https://TUO_DOMINIO.lightning.force.com/lightning/lightning.out.js"></script>
 <style>
    body {
      font-family: Arial, sans-serif;
    }
-   #app {
-     min-height: 300px;
-     border: 2px dashed #999;
+   #shell {
+     border: 2px solid #444;
      padding: 10px;
+   }
+   iframe {
+     width: 100%;
+     height: 500px;
+     border: 1px solid #999;
    }
 </style>
 </head>
 <body>
-<h2>Test bundle.js (vecchio)</h2>
-<!-- 2️⃣ Container -->
-<div id="app"></div>
-<!-- 3️⃣ Bundle legacy -->
+<h2>Test bundle.js (iframe)</h2>
+<div id="shell">
+<iframe id="sf-frame"></iframe>
+</div>
+<!-- Bundle legacy -->
 <script src="./bundle.js"></script>
-<!-- 4️⃣ MOCK DEL PORTALE (CONTRATTO MINIMO) -->
+<!-- MOCK PORTALE -->
 <script>
    window.Application = {
      authenticated: true,
      handlerComponent: function (name, payload) {
        console.log("[MOCK Application.handlerComponent]", name, payload);
+       // esempio: resize iframe se richiesto
+       if (name === "resize" && payload?.height) {
+         document.getElementById("sf-frame").style.height =
+           payload.height + "px";
+       }
      },
-     resize: function () {
-       // noop
-     },
-     navigate: function () {
-       // noop
-     },
-     postMessage: function () {
-       // noop
-     }
+     resize: function () {},
+     navigate: function () {},
+     postMessage: function () {}
    };
 </script>
-<!-- 5️⃣ INIT DEL BUNDLE -->
+<!-- INIT -->
 <script>
    new window.AxaApplication({
-     target: "app",
+     target: "sf-frame",   // 👈 iframe, non div
      component: "javascriptIntegration",
      lwc: true
    });
