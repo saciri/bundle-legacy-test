@@ -4,32 +4,18 @@
 <meta charset="UTF-8" />
 <title>Test bundle.js - Fullscreen iframe</title>
 <style>
-   html, body {
-     height: 100%;
-     margin: 0;
-   }
-   body { font-family: Arial, sans-serif; }
-   /* Schermata iniziale */
-   #launcher {
-     height: 100vh;
-     display: flex;
-     align-items: center;
-     justify-content: center;
-   }
-   /* Contenitore iframe full screen */
-   #host {
-     height: 100vh;
-     display: none; /* nascosto finché non clicchi */
-   }
-   /* wrapper del bundle */
+   html, body { height: 100%; margin: 0; }
+   body { font-family: Arial, sans-serif; overflow: hidden; }
+   #launcher { height: 100vh; display:flex; align-items:center; justify-content:center; }
+   #host { height: 100vh; display:none; }
    #host .sfdc-component,
    #host .scroll-wrapper {
-     height: 100%;
+     height: 100vh !important;
+     overflow: hidden !important;
    }
-   /* iframe full screen */
    #host iframe {
      width: 100%;
-     height: 100%;
+     height: 100vh !important;
      border: 0;
      display: block;
    }
@@ -40,52 +26,65 @@
 <button id="openLead">Apri Lead</button>
 </div>
 <div id="host"></div>
-<!-- il tuo bundle -->
 <script src="./bundle.js"></script>
 <script>
-   // Base corretta (serve al Lightning.generateUrl nel bundle)
    const COMMUNITY_URI = "https://ppcrmagenti.axa-italia.it/tabs/";
-   // Forza fallback (come nel sito reale)
    localStorage.setItem("fallback", "true");
-   // IMPORTANTE: window.Application deve essere l'istanza reale del controller del bundle
-   window.Application = new window.AxaApplication(
-     {},
-     (authParams) => console.log("[authCallback]", authParams)
-   );
-   // Fallback communityURI usato dal Lightning se non trova customUrl in URL/hash
+   window.Application = new window.AxaApplication({}, (authParams) => console.log("[authCallback]", authParams));
    if (window.SalesforceAuth) {
      window.SalesforceAuth.communityURI = COMMUNITY_URI;
    }
-   // Log messaggi dall’iframe (HOOK_REQUEST / AUTH_REFRESH ecc.)
+   // log messaggi dal child
    window.addEventListener("message", (e) => {
      if (e.data?.action) console.log("[FROM IFRAME]", e.data);
    });
+   // resize continuo
+   window.addEventListener("resize", () => {
+     const iframe = document.getElementById("mobilityLeadListView");
+     if (!iframe?.contentWindow) return;
+     iframe.contentWindow.postMessage({
+       action: "RESIZE",
+       data: {
+         height: window.innerHeight,
+         width: window.innerWidth,
+         type: "desktop"
+       }
+     }, "*");
+   });
    document.getElementById("openLead").onclick = () => {
-     // Vai fullscreen: nascondi launcher e mostra solo iframe
      document.getElementById("launcher").style.display = "none";
      document.getElementById("host").style.display = "block";
      const host = document.getElementById("host");
      host.innerHTML = '<div id="mobilityLeadListView"></div>';
-     // Questo monta React/Lightning e crea l’iframe
      new window.SalesforceConnect(
-       "mobilityLeadListView",      // component
-       "mobilityLeadListView",      // container id
+       "mobilityLeadListView",
+       "mobilityLeadListView",
        {
-         auth: true,                // forza authenticated nel Lightning
-         lwc: false,                // iframe mode
+         auth: true,
+         lwc: false,
          visualforce: "javascriptIntegration",
-         // params → querystring dell’iframe
          widget: true,
          limit: 5,
          DefaultFilter: "All",
          breadcrumb: [{ label: "Homepage" }]
        }
      );
-     // Debug: stampa src iframe dopo creazione
+     // forza resize/refresh dopo mount
      setTimeout(() => {
        const iframe = document.getElementById("mobilityLeadListView");
-       console.log("[iframe src]", iframe?.getAttribute("src"));
-     }, 600);
+       if (!iframe) return;
+       iframe.style.height = "100vh";
+       // manda resize/refresh al child
+       iframe.contentWindow?.postMessage({
+         action: "RESIZE",
+         data: {
+           height: window.innerHeight,
+           width: window.innerWidth,
+           type: "large-desktop"
+         }
+       }, "*");
+       iframe.contentWindow?.postMessage({ action: "REFRESH" }, "*");
+     }, 1200);
    };
 </script>
 </body>
