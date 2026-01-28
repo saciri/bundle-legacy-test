@@ -2,49 +2,40 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8" />
-<title>Launcher Mobility</title>
-<style>
-   body { font-family: Arial, sans-serif; }
-   button { padding: 10px 16px; font-size: 16px; cursor: pointer; }
-   #lead-host { margin-top: 16px; }
-   iframe { width: 100%; height: 600px; border: 1px solid #ccc; }
-</style>
+<title>Launcher corretto</title>
 </head>
 <body>
 <button id="openLead">Apri Lead</button>
-<!-- qui il bundle monterà il componente/iframe -->
-<div id="lead-host"></div>
-<!-- IL TUO bundle.js -->
+<!-- container usato dal bundle -->
+<div id="app"></div>
+<!-- bundle legacy -->
 <script src="./bundle.js"></script>
 <script>
-   // 1) community/base url (quella che vedi nel portale reale)
-   //    NB: deve finire con /tabs/ se la tua VF sta sotto /tabs/apex/...
-   const COMMUNITY_URI = "https://ppcrmagenti.axa-italia.it/tabs/";
-   // 2) In molti ambienti il bundle usa questo flag per bypassare l'auth UI
-   localStorage.setItem("fallback", "true");
-   // 3) Crea un'istanza "vera" dell'Application del bundle (non un mock)
-   //    Serve perché gestisce HOOK_REQUEST, AUTH_REFRESH ecc.
-   window.Application = new window.AxaApplication(
-     { customUrl: COMMUNITY_URI },  // params base
-     (authParams) => console.log("authCallback", authParams)
-   );
-   // 4) Click -> crea il SalesforceConnect per mobilityLeadListView
-   //    Questo è IL punto che "apre" la UI (crea iframe con src giusto)
+   // 🔑 BASE URL DELLA COMMUNITY (OBBLIGATORIA)
+   const COMMUNITY_BASE = "https://ppcrmagenti.axa-italia.it/";
+   // 🔑 Application DEVE ESISTERE PRIMA
+   window.Application = {
+     baseUrl: COMMUNITY_BASE,
+     authenticated: true,
+     handlerComponent: function (name, params) {
+       console.log("handlerComponent", name, params);
+     },
+     resize: function () {},
+     navigate: function () {},
+     postMessage: function () {}
+   };
+   // Avvio applicazione legacy
+   const app = new window.AxaApplication({
+     target: "app",
+     lwc: true,
+     visualforce: "javascriptIntegration"
+   });
+   // Click → apertura Lead (come nel portale)
    document.getElementById("openLead").onclick = () => {
-     // pulizia host
-     document.getElementById("lead-host").innerHTML = "";
-     // crea un container DOM per React
-     const node = document.createElement("div");
-node.id = "mobilityLeadListView";
-     document.getElementById("lead-host").appendChild(node);
-     // istanzia la connessione come fa il portale
-     new window.SalesforceConnect("mobilityLeadListView", node.id, {
-       customUrl: COMMUNITY_URI,
-       visualforce: "javascriptIntegration",     // VF page
+     app.handlerComponent("mobilityLeadListView", {
        widget: true,
        limit: 5,
-       DefaultFilter: "All",
-       breadcrumb: [{ label: "Homepage" }]
+       DefaultFilter: "All"
      });
    };
 </script>
