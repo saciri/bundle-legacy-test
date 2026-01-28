@@ -3,42 +3,38 @@
 <head>
 <meta charset="UTF-8" />
 <title>Baseline – Bundle Legacy</title>
-<!-- Lightning Out -->
-<script src="https://ppcrmagenti.axa-italia.it/tabs/lightning/lightning.out.js"></script>
+<!-- 1️⃣ Lightning Out -->
+<script src="https://TUO_DOMINIO.lightning.force.com/lightning/lightning.out.js"></script>
 <style>
-
-    body { font-family: Arial, sans-serif; }
-
-    #app {
-
-      min-height: 300px;
-
-      border: 2px dashed #999;
-
-      padding: 10px;
-
-    }
+   body {
+     font-family: Arial, sans-serif;
+   }
+   #app {
+     min-height: 300px;
+     border: 2px dashed #999;
+     padding: 10px;
+   }
 </style>
 </head>
 <body>
 <h2>Test bundle.js (vecchio)</h2>
+<!-- 2️⃣ Container -->
 <div id="app"></div>
-<!-- Bundle legacy -->
+<!-- 3️⃣ Bundle legacy -->
 <script src="./bundle.js"></script>
-<!-- INIT MINIMO -->
+<!-- 4️⃣ MOCK DEL PORTALE (OBBLIGATORIO) -->
 <script>
-
-     new window.AxaApplication({
-
-      target: "app",
-
-      component: "javascriptIntegration",
-
-      lwc: true
-
-    });
-
+   window.Application = {
+     authenticated: true
+   };
+</script>
+<!-- 5️⃣ INIT DEL BUNDLE -->
+<script>
+   new window.AxaApplication({
+     target: "app",
+     component: "javascriptIntegration",
+     lwc: true
+   });
 </script>
 </body>
 </html>
- 
