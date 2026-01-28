@@ -2,87 +2,62 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8" />
-<title>Launcher Mobility (Replica)</title>
+<title>Test bundle.js - Mobility Lead</title>
 <style>
    body { font-family: Arial, sans-serif; }
    button { padding: 10px 16px; font-size: 16px; cursor: pointer; }
-   #overlay {
-     position: fixed;
-     inset: 0;
-     background: rgba(0,0,0,.6);
-     display: none;
-     align-items: center;
-     justify-content: center;
-     z-index: 9999;
-   }
-   #frameBox {
-     width: 92vw;
-     height: 92vh;
-     background: #fff;
-     position: relative;
-     box-shadow: 0 10px 40px rgba(0,0,0,.35);
-   }
-   #closeBtn {
-     position: absolute;
-     top: 8px;
-     right: 8px;
-     z-index: 2;
-     padding: 6px 10px;
-     cursor: pointer;
-   }
-   #sfFrame {
-     width: 100%;
-     height: 100%;
-     border: none;
-   }
+   #host { margin-top: 16px; }
 </style>
 </head>
 <body>
-<button id="openLeadBtn">Apri Lead</button>
-<div id="overlay">
-<div id="frameBox">
-<button id="closeBtn">✕</button>
-<iframe id="sfFrame"></iframe>
-</div>
-</div>
+<button id="openLead">Apri Lead (via bundle)</button>
+<div id="host"></div>
+<!-- il tuo bundle -->
+<script src="./bundle.js"></script>
 <script>
-   // === CONFIG: qui metti la base corretta ===
-   const SF_BASE = "https://ppcrmagenti.axa-italia.it"; // cambia se serve
-   const VF_PATH = "/tabs/apex/javascriptIntegration";
-   // Costruisce l’URL esattamente come quello che hai trovato in “view frame source”
-   function buildLeadUrl() {
-     const params = new URLSearchParams({
-       id: "mobilityLeadListView",
-       component: "mobilityLeadListView",
-       limit: "5",
-       widget: "true",
-       DefaultFilter: "All",
-       breadcrumbLabels: "Homepage"
-     });
-     return `${SF_BASE}${VF_PATH}?${params.toString()}`;
+   // 1) Base corretta (serve a Lightning.generateUrl())
+   const COMMUNITY_URI = "https://ppcrmagenti.axa-italia.it/tabs/";
+   // 2) Forza "autenticato" per far renderizzare Lightning (altrimenti return null)
+   //    Il tuo codice fa: let authenticated = window.Application.authenticated;
+   //    e poi render() ritorna null se non autenticato.
+   localStorage.setItem("fallback", "true");
+   // 3) Questo è il punto che ti mancava:
+   //    window.Application deve essere l'ISTANZA del controller del bundle, non un oggetto finto.
+   //    NON sovrascrivere window.Application con un plain object.
+   window.Application = new window.AxaApplication(
+     {}, // params (se il tuo bundle li usa li aggiungiamo dopo)
+     (authParams) => console.log("[authCallback]", authParams)
+   );
+   // 4) Imposta anche il fallback della communityURI usato da Lightning.communityURI
+   //    (nel tuo snippet: return SalesforceAuth.communityURI)
+   if (window.SalesforceAuth) {
+     window.SalesforceAuth.communityURI = COMMUNITY_URI;
    }
-   const overlay = document.getElementById("overlay");
-   const frame = document.getElementById("sfFrame");
-   document.getElementById("openLeadBtn").addEventListener("click", () => {
-     overlay.style.display = "flex";
-     frame.src = buildLeadUrl(); // 👈 apertura reale UI = cambiare src
-   });
-   document.getElementById("closeBtn").addEventListener("click", () => {
-     overlay.style.display = "none";
-     frame.src = "about:blank";
-   });
-   // (Opzionale) ascolta messaggi che arrivano dall’iframe (HOOK_REQUEST/AUTH_REFRESH ecc.)
-   window.addEventListener("message", (e) => {
-     // Nel sito reale si vedono HOOK_REQUEST e AUTH_REFRESH  [oai_citation:3‡new 31.txt](sediment://file_00000000704871f5a0c0866b8c2519e2)
-     if (e && e.data) {
-       console.log("[FROM IFRAME]", e.data);
-       // esempio: se vuoi chiudere quando l’iframe lo chiede
-       if (e.data.action === "CLOSE") {
-         overlay.style.display = "none";
-         frame.src = "about:blank";
+   // 5) Click: crea SalesforceConnect -> monta React Lightning -> crea l’IFRAME
+   document.getElementById("openLead").onclick = () => {
+     const host = document.getElementById("host");
+     host.innerHTML = '<div id="mobilityLeadListView"></div>';
+     new window.SalesforceConnect(
+       "mobilityLeadListView",      // component (c:mobilityLeadListView lato VF)
+       "mobilityLeadListView",      // htmlId container
+       {
+         // IMPORTANTI per il tuo Lightning:
+         auth: true,                // forza authenticated=true in constructor(props)
+         lwc: false,                // vogliamo iframe mode (renderIframe)
+         visualforce: "javascriptIntegration",
+         // parametri che finiscono in querystring (queryString esclude customUrl)
+         widget: true,
+         limit: 5,
+         DefaultFilter: "All",
+         breadcrumb: [{ label: "Homepage" }]
        }
-     }
-   });
+     );
+     // Debug: dopo il click controlla che l’iframe esista
+     setTimeout(() => {
+       const iframe = document.getElementById("mobilityLeadListView");
+       console.log("[iframe]", iframe && iframe.getAttribute("src"));
+     }, 500);
+   };
 </script>
 </body>
 </html>
