@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<title>Baseline – Bundle Legacy</title>
+<!-- Lightning Out -->
+<script src="https://TUO_DOMINIO.lightning.force.com/lightning/lightning.out.js"></script>
+<style>
+
+    body { font-family: Arial, sans-serif; }
+
+    #app {
+
+      min-height: 300px;
+
+      border: 2px dashed #999;
+
+      padding: 10px;
+
+    }
+</style>
+</head>
+<body>
+<h2>Test bundle.js (vecchio)</h2>
+<div id="app"></div>
+<!-- Bundle legacy -->
+<script src="./bundle.js"></script>
+<!-- INIT MINIMO -->
+<script>
+
+    const app = new window.AxaApplication({
+
+      target: "app",
+
+      component: "javascriptIntegration",
+
+      lwc: true
+
+    });
+
+    app.init();
+</script>
+</body>
+</html>
+ 
