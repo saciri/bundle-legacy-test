@@ -2,62 +2,43 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8" />
-<title>Salesforce Launcher</title>
-<style>
-   body { font-family: Arial, sans-serif; }
-   #overlay {
-     position: fixed;
-     inset: 0;
-     background: rgba(0,0,0,.6);
-     display: none;
-     align-items: center;
-     justify-content: center;
-   }
-   #frame-container {
-     width: 90%;
-     height: 90%;
-     background: #fff;
-     position: relative;
-   }
-   #close {
-     position: absolute;
-     top: 6px;
-     right: 6px;
-     z-index: 10;
-   }
-   iframe {
-     width: 100%;
-     height: 100%;
-     border: none;
-   }
-</style>
+<title>Bundle legacy test</title>
+<!-- bundle originale -->
+<script src="assets/libs/bundle.js"></script>
 </head>
 <body>
-<button id="openLead">Apri Lead</button>
-<div id="overlay">
-<div id="frame-container">
-<button id="close">✕</button>
-<iframe id="sf-frame"></iframe>
-</div>
-</div>
+<h2>Bundle.js (vecchio)</h2>
+<button onclick="openLead()">Apri Lead</button>
+<hr />
+<!-- iframe SEMPRE lo stesso -->
+<iframe
+   id="sfFrame"
+   style="width:100%; height:600px; border:1px solid #ccc"
+></iframe>
 <script>
-   const overlay = document.getElementById("overlay");
-   const iframe = document.getElementById("sf-frame");
-   document.getElementById("openLead").onclick = () => {
-     overlay.style.display = "flex";
+   // MOCK Application (serve al bundle)
+   window.Application = {
+     authenticated: true,
+     handlerComponent: function (params) {
+       console.log('[MOCK] handlerComponent', params);
+     }
+   };
+   function openLead() {
+     const iframe = document.getElementById('sfFrame');
+     // ⚠️ NOTA: questo URL su GitHub verrà BLOCCATO
      iframe.src =
-       "https://ppcrmagenti.axa-italia.it/tabs/apex/javascriptIntegration" +
-       "?id=mobilityLeadListView" +
-       "&component=mobilityLeadListView" +
-       "&limit=5" +
-       "&widget=true" +
-       "&DefaultFilter=All" +
-       "&breadcrumbLabels=Homepage";
-   };
-   document.getElementById("close").onclick = () => {
-     overlay.style.display = "none";
-     iframe.src = "";
-   };
+       'https://ppcrmagenti.axa-italia.it/tabs/apex/javascriptIntegration';
+     iframe.onload = () => {
+       iframe.contentWindow.postMessage(
+         {
+           id: 'mobilityLeadListView',
+           component: 'mobilityLeadListView',
+           widget: true
+         },
+         '*'
+       );
+     };
+   }
 </script>
 </body>
 </html>
