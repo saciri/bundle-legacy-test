@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <title>Baseline – Bundle Legacy</title>
-<!-- 1️⃣ Lightning Out -->
-<script src="https://ppcrmagenti.axa-italia.it/tabs/lightning/lightning.out.js"></script>
+<!-- 1️⃣ Lightning Out (OBBLIGATORIO) -->
+<script src="https://TUO_DOMINIO.lightning.force.com/lightning/lightning.out.js"></script>
 <style>
    body {
      font-family: Arial, sans-serif;
@@ -22,10 +22,22 @@
 <div id="app"></div>
 <!-- 3️⃣ Bundle legacy -->
 <script src="./bundle.js"></script>
-<!-- 4️⃣ MOCK DEL PORTALE (OBBLIGATORIO) -->
+<!-- 4️⃣ MOCK DEL PORTALE (CONTRATTO MINIMO) -->
 <script>
    window.Application = {
-     authenticated: true
+     authenticated: true,
+     handlerComponent: function (name, payload) {
+       console.log("[MOCK Application.handlerComponent]", name, payload);
+     },
+     resize: function () {
+       // noop
+     },
+     navigate: function () {
+       // noop
+     },
+     postMessage: function () {
+       // noop
+     }
    };
 </script>
 <!-- 5️⃣ INIT DEL BUNDLE -->
