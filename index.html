@@ -1,34 +1,38 @@
 <!DOCTYPE html>
-<html lang="it">
+<html>
 <head>
 <meta charset="UTF-8" />
-<title>Launcher corretto</title>
+<title>Launcher reale</title>
 </head>
 <body>
 <button id="openLead">Apri Lead</button>
-<!-- container usato dal bundle -->
-<div id="app"></div>
-<!-- bundle legacy -->
+<div id="root"></div>
 <script src="./bundle.js"></script>
 <script>
-   //  SOLO ciò che serve al bundle
+   // base URL OBBLIGATORIA
    window.Application = {
      baseUrl: "https://ppcrmagenti.axa-italia.it/",
      authenticated: true
    };
-   // inizializza l'app (NON crea iframe)
-   const app = new window.AxaApplication({
-     target: "app",
-     lwc: true,
-     visualforce: "javascriptIntegration"
-   });
-   //  usa IL handlerComponent del bundle
+   // inizializza bridge
+   const app = new window.AxaApplication({});
+   app.bindEvent();
+   // IMPORTANTE: React è incluso nel bundle
+   const SalesforceConnect =
+     window.require?.("vendor/react/components/SalesforceConnect")
+     || window.SalesforceConnect;
    document.getElementById("openLead").onclick = () => {
-     app.handlerComponent("mobilityLeadListView", {
-       widget: true,
-       limit: 5,
-       DefaultFilter: "All"
-     });
+     // monta React → CREA iframe
+     ReactDOM.render(
+       React.createElement(SalesforceConnect, {
+         id: "mobilityLeadListView",
+         visualforce: "javascriptIntegration",
+         widget: true,
+         limit: 5,
+         DefaultFilter: "All"
+       }),
+       document.getElementById("root")
+     );
    };
 </script>
 </body>
