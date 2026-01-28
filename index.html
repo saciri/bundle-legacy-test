@@ -11,26 +11,18 @@
 <!-- bundle legacy -->
 <script src="./bundle.js"></script>
 <script>
-   // 🔑 BASE URL DELLA COMMUNITY (OBBLIGATORIA)
-   const COMMUNITY_BASE = "https://ppcrmagenti.axa-italia.it/";
-   // 🔑 Application DEVE ESISTERE PRIMA
+   //  SOLO ciò che serve al bundle
    window.Application = {
-     baseUrl: COMMUNITY_BASE,
-     authenticated: true,
-     handlerComponent: function (name, params) {
-       console.log("handlerComponent", name, params);
-     },
-     resize: function () {},
-     navigate: function () {},
-     postMessage: function () {}
+     baseUrl: "https://ppcrmagenti.axa-italia.it/",
+     authenticated: true
    };
-   // Avvio applicazione legacy
+   // inizializza l'app (NON crea iframe)
    const app = new window.AxaApplication({
      target: "app",
      lwc: true,
      visualforce: "javascriptIntegration"
    });
-   // Click → apertura Lead (come nel portale)
+   //  usa IL handlerComponent del bundle
    document.getElementById("openLead").onclick = () => {
      app.handlerComponent("mobilityLeadListView", {
        widget: true,
