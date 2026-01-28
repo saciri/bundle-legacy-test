@@ -1,37 +1,53 @@
 <!DOCTYPE html>
-<html>
+<html lang="it">
 <head>
 <meta charset="UTF-8" />
-<title>Launcher reale</title>
+<title>Launcher Mobility</title>
+<style>
+   body { font-family: Arial, sans-serif; }
+   button { padding: 10px 16px; font-size: 16px; cursor: pointer; }
+   #host { margin-top: 16px; }
+</style>
 </head>
 <body>
 <button id="openLead">Apri Lead</button>
-<div id="root"></div>
+<div id="host"></div>
+<!-- bundle legacy -->
 <script src="./bundle.js"></script>
 <script>
-   // base URL OBBLIGATORIA
-   window.Application = {
-     baseUrl: "https://ppcrmagenti.axa-italia.it/",
-     authenticated: true
-   };
-   // inizializza bridge
-   const app = new window.AxaApplication({});
-   app.bindEvent();
-   // IMPORTANTE: React è incluso nel bundle
-   const SalesforceConnect =
-     window.require?.("vendor/react/components/SalesforceConnect")
-     || window.SalesforceConnect;
+   // 1) Base community (DEVE essere quella che genera /tabs/apex/...)
+   const COMMUNITY_URI = "https://ppcrmagenti.axa-italia.it/tabs/";
+   // 2) Metti in piedi i globali che il tuo Lightning usa
+   //    (il tuo codice legge window.Application.authenticated)
+   window.Application = window.Application || {};
+   window.Application.authenticated = true;
+   // 3) Imposta la communityURI nel posto che Lightning usa se non trova ?customUrl=
+   //    (nel tuo snippet: return SalesforceAuth.communityURI)
+   if (window.SalesforceAuth) {
+     window.SalesforceAuth.communityURI = COMMUNITY_URI;
+   }
+   // 4) Click: monta il componente che crea l’iframe
    document.getElementById("openLead").onclick = () => {
-     // monta React → CREA iframe
-     ReactDOM.render(
-       React.createElement(SalesforceConnect, {
-         id: "mobilityLeadListView",
+     const host = document.getElementById("host");
+     host.innerHTML = '<div id="mobilityLeadListView"></div>';
+     // IMPORTANTI:
+     // - component = mobilityLeadListView (quello che vuoi aprire)
+     // - visualforce = javascriptIntegration (default nel tuo snippet)
+     // - customUrl = COMMUNITY_URI (così generateUrl non diventa nullapex/...)
+     // - auth=true (così authenticated diventa true anche se qualcosa cambia)
+     new window.SalesforceConnect(
+       "mobilityLeadListView",           // nome componente target (c:<component>)
+       "mobilityLeadListView",           // id container DOM
+       {
+         auth: true,
+         lwc: false,                     // vogliamo iframe mode (non lightning out)
          visualforce: "javascriptIntegration",
+         customUrl: COMMUNITY_URI,
          widget: true,
          limit: 5,
-         DefaultFilter: "All"
-       }),
-       document.getElementById("root")
+         DefaultFilter: "All",
+         breadcrumb: [{ label: "Homepage" }]
+       }
      );
    };
 </script>
