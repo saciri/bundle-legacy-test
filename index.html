@@ -4,18 +4,11 @@
 <meta charset="UTF-8" />
 <title>Salesforce Launcher</title>
 <style>
-   body {
-     font-family: Arial, sans-serif;
-   }
-   button {
-     padding: 10px 16px;
-     font-size: 16px;
-     cursor: pointer;
-   }
+   body { font-family: Arial, sans-serif; }
    #overlay {
      position: fixed;
      inset: 0;
-     background: rgba(0, 0, 0, 0.6);
+     background: rgba(0,0,0,.6);
      display: none;
      align-items: center;
      justify-content: center;
@@ -40,11 +33,7 @@
 </style>
 </head>
 <body>
-<h2>Sito esterno</h2>
-<button id="openLead">
-   Apri Lead
-</button>
-<!-- OVERLAY CON IFRAME -->
+<button id="openLead">Apri Lead</button>
 <div id="overlay">
 <div id="frame-container">
 <button id="close">✕</button>
@@ -56,20 +45,19 @@
    const iframe = document.getElementById("sf-frame");
    document.getElementById("openLead").onclick = () => {
      overlay.style.display = "flex";
-     iframe.src = "https://ppcrmagenti.axa-italia.it/tabs/lightning/outApp.app" +
-       "?component=mobilityLeadListView";
+     iframe.src =
+       "https://ppcrmagenti.axa-italia.it/tabs/apex/javascriptIntegration" +
+       "?id=mobilityLeadListView" +
+       "&component=mobilityLeadListView" +
+       "&limit=5" +
+       "&widget=true" +
+       "&DefaultFilter=All" +
+       "&breadcrumbLabels=Homepage";
    };
    document.getElementById("close").onclick = () => {
      overlay.style.display = "none";
      iframe.src = "";
    };
-   // 🔁 opzionale: messaggi da Salesforce
-   window.addEventListener("message", event => {
-     if (event.data?.type === "CLOSE_IFRAME") {
-       overlay.style.display = "none";
-       iframe.src = "";
-     }
-   });
 </script>
 </body>
 </html>
