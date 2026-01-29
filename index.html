@@ -162,6 +162,7 @@
      document.getElementById("host").innerHTML = "";
    }
    document.getElementById("close").onclick = closeFullscreen;
+   document.getElementById("breadcrumb").onclick = closeFullscreen;
    document.getElementById("launchBtn").onclick = () => {
      const communityUri = document.getElementById("communityUri").value.trim();
      const visualforce = document.getElementById("visualforce").value.trim() || "javascriptIntegration";
