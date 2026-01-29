@@ -2,11 +2,11 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8" />
-<title>Test bundle.js - Launcher dinamico</title>
+<title>Launcher dinamico (bundle.js)</title>
 <style>
    html, body { height: 100%; margin: 0; }
    body { font-family: Arial, sans-serif; overflow: hidden; }
-   /* Schermata iniziale */
+   /* Launcher */
    #launcher {
      height: 100vh;
      display: flex;
@@ -21,6 +21,7 @@
      border-radius: 10px;
      padding: 18px;
      box-shadow: 0 10px 30px rgba(0,0,0,.08);
+     background: #fff;
    }
    #panel h2 { margin: 0 0 12px; }
    .row {
@@ -53,23 +54,25 @@
      color: #555;
      line-height: 1.4;
    }
-   /* Fullscreen iframe */
+   /* Fullscreen host (iframe) */
    #host {
      height: 100vh;
      display: none;
    }
+   /* wrapper del bundle */
    #host .sfdc-component,
    #host .scroll-wrapper {
      height: 100vh !important;
      overflow: hidden !important;
    }
+   /* iframe full screen */
    #host iframe {
      width: 100%;
      height: 100vh !important;
      border: 0;
      display: block;
    }
-   /* Close button */
+   /* Close button sopra iframe */
    #close {
      position: fixed;
      top: 10px;
@@ -87,7 +90,7 @@
 <!-- Launcher -->
 <div id="launcher">
 <div id="panel">
-<h2>Launcher dinamico (bundle.js)</h2>
+<h2>Launcher dinamico (test bundle.js)</h2>
 <div class="row">
 <label>Community base</label>
 <input id="communityUri" value="https://ppcrmagenti.axa-italia.it/tabs/" />
@@ -112,8 +115,9 @@
 <button id="launchBtn">Lancia</button>
 </div>
 <div class="hint">
-<div><b>Params</b>: scrivi tipo <code>key=value&key2=value2</code>. Verranno aggiunti alla query dell’iframe.</div>
+<div><b>Params</b>: scrivi tipo <code>key=value&key2=value2</code> (finiscono nella query dell’iframe).</div>
 <div><b>Breadcrumb</b>: separa con virgola (es. <code>Homepage,Lista Lead</code>) → diventa <code>breadcrumbLabels=...</code>.</div>
+<div><b>Comportamento</b>: fullscreen iframe + gestione postMessage (Homepage chiude, OPEN_QUOT apre nuova tab).</div>
 </div>
 </div>
 </div>
@@ -123,12 +127,8 @@
 <!-- Bundle -->
 <script src="./bundle.js"></script>
 <script>
-   // Log messaggi dall’iframe (HOOK_REQUEST / AUTH_REFRESH ecc.)
-   window.addEventListener("message", (e) => {
-     if (e.data?.action) console.log("[FROM IFRAME]", e.data);
-   });
+   // ---------- helpers parsing ----------
    function parseQueryString(qs) {
-     // Accetta "a=1&b=2" -> {a:"1", b:"2"}
      const out = {};
      const s = (qs || "").trim().replace(/^\?/, "");
      if (!s) return out;
@@ -149,6 +149,7 @@
        .filter(Boolean);
      return labels.map(label => ({ label }));
    }
+   // ---------- fullscreen controls ----------
    function openFullscreen() {
      document.getElementById("launcher").style.display = "none";
      document.getElementById("host").style.display = "block";
@@ -162,45 +163,115 @@
      document.getElementById("host").innerHTML = "";
    }
    document.getElementById("close").onclick = closeFullscreen;
-   document.getElementById("breadcrumb").onclick = closeFullscreen;
+   // ---------- community URL helpers ----------
+   function getCommunitySBase() {
+     const tabs = (window.SalesforceAuth?.communityURI || document.getElementById("communityUri")?.value || "").trim();
+     if (tabs.includes("/tabs/")) return tabs.replace(/\/tabs\/?$/, "/s/");
+     if (tabs.endsWith("/")) return tabs + "s/";
+     return tabs + "/s/";
+   }
+   function openInNewTab(url) {
+     window.open(url, "_blank", "noopener,noreferrer");
+   }
+   function openRecordDetail(recordId) {
+     const base = getCommunitySBase();
+     openInNewTab(`${base}detail/${encodeURIComponent(recordId)}`);
+   }
+   // ---------- postMessage handler (child -> parent) ----------
+   window.addEventListener("message", (e) => {
+     const msg = e.data;
+     if (!msg) return;
+     if (msg.action) console.log("[FROM IFRAME]", msg);
+     // Chiudi su Homepage breadcrumb
+     if (msg.action === "NAVIGATETO") {
+       const name  = (msg.target?.name  || "").toString().toLowerCase();
+       const label = (msg.target?.label || "").toString().toLowerCase();
+       if (name === "homepage" || label === "homepage" || label === "home") {
+         closeFullscreen();
+         return;
+       }
+     }
+     // Apri URL in nuova tab
+     if (msg.action === "GOTO" && typeof msg.url === "string") {
+       openInNewTab(msg.url);
+       return;
+     }
+     // Chiudi esplicito
+     if (msg.action === "CLOSE_MODAL") {
+       closeFullscreen();
+       return;
+     }
+     // OPEN_CALLBACK: tutte le tipologie
+     if (msg.action === "OPEN_CALLBACK") {
+       const p = msg.params || {};
+       const type = (p.type || "").toString();
+       const recordId = p.recordId;
+       switch (type) {
+         case "OPEN_QUOT":
+         case "OPEN_OPP":
+         case "OPEN_TASK":
+         case "OPEN_EVENT":
+         case "OPEN_CUSTOM":
+         case "OPEN_REPORT":
+         case "CONVERT_LEAD":
+           if (recordId) openRecordDetail(recordId);
+           else console.warn("OPEN_CALLBACK senza recordId", p);
+           return;
+         case "OPEN_SUBJECT": {
+           // qui recordId può non essere un Salesforce Id, fallback su ricerca
+           const base = getCommunitySBase();
+           const value = (recordId || "").toString();
+           openInNewTab(`${base}global-search/${encodeURIComponent(value)}`);
+           return;
+         }
+         case "NEW_PROP":
+           // qui spesso arriva recordData; log e basta (o implementa una route specifica)
+           console.log("[NEW_PROP]", p.recordData || p);
+           return;
+         default:
+           console.warn("[OPEN_CALLBACK] type non gestito:", type, p);
+           return;
+       }
+     }
+     // HOOK_REQUEST / AUTH_REFRESH: normalmente solo log/ack (non aprono)
+     if (msg.action === "HOOK_REQUEST") {
+       try { e.source?.postMessage({ action: "HOOK_RESPONSE", id: msg.id }, "*"); } catch {}
+       return;
+     }
+     if (msg.action === "AUTH_REFRESH") {
+       return;
+     }
+   });
+   // ---------- launch button ----------
    document.getElementById("launchBtn").onclick = () => {
      const communityUri = document.getElementById("communityUri").value.trim();
-     const visualforce = document.getElementById("visualforce").value.trim() || "javascriptIntegration";
-     const component = document.getElementById("componentName").value.trim();
-     const paramsText = document.getElementById("paramsText").value;
-     const breadcrumbStr = document.getElementById("breadcrumb").value;
-     if (!component) {
-       alert("Inserisci il nome del componente (es. mobilityLeadListView).");
-       return;
-     }
-     if (!communityUri) {
-       alert("Inserisci la Community base (es. https://.../tabs/).");
-       return;
-     }
+     const visualforce  = (document.getElementById("visualforce").value || "javascriptIntegration").trim();
+     const component    = document.getElementById("componentName").value.trim();
+     const paramsText   = document.getElementById("paramsText").value;
+     const breadcrumbStr= document.getElementById("breadcrumb").value;
+     if (!communityUri) return alert("Inserisci la Community base (es. https://.../tabs/).");
+     if (!component) return alert("Inserisci il nome componente (es. mobilityLeadListView).");
      // fallback usato dal bundle
      localStorage.setItem("fallback", "true");
-     // Application deve essere l’istanza reale del bundle (come hai testato prima)
+     // Application deve essere l’istanza reale del bundle
      window.Application = new window.AxaApplication({}, (authParams) => console.log("[authCallback]", authParams));
+     // fallback communityURI usato da Lightning.communityURI
      if (window.SalesforceAuth) window.SalesforceAuth.communityURI = communityUri;
      // prepara params per SalesforceConnect
      const paramsObj = parseQueryString(paramsText);
-     paramsObj.auth = true;                // forza authenticated nel Lightning
-     paramsObj.lwc = false;                // iframe mode
-     paramsObj.visualforce = visualforce;  // VF page
+     paramsObj.auth = true;                  // forza authenticated nel Lightning
+     paramsObj.lwc = false;                  // iframe mode
+     paramsObj.visualforce = visualforce;    // VF page
      paramsObj.breadcrumb = parseBreadcrumb(breadcrumbStr);
-     // Fullscreen
+     // fullscreen
      openFullscreen();
-     // Host container
+     // container
      const host = document.getElementById("host");
-     const containerId = component; // usa il nome componente come id (coerente col tuo Lightning)
+     const containerId = component; // id usato anche come iframe id nel Lightning
      host.innerHTML = `<div id="${containerId}"></div>`;
-     // Monta il componente: crea iframe con src costruito da generateUrl()
-     new window.SalesforceConnect(
-       component,
-       containerId,
-       paramsObj
-     );
-     // debug: stampa src iframe dopo mount
+     // mount: crea iframe via bundle
+     new window.SalesforceConnect(component, containerId, paramsObj);
+     // debug: stampa src iframe
      setTimeout(() => {
        const iframe = document.getElementById(containerId);
        console.log("[iframe src]", iframe?.getAttribute("src"));
