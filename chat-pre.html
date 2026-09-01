@@ -1,10 +1,114 @@
 <!DOCTYPE html>
-<html>
+<html lang="it">
 
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CHAT AXA</title>
+  <title>CHAT AXA - Letizia_PCC_BOT</title>
+  
+  <style type='text/css'>
+    /* Stili generali e reset */
+    body {
+      font-family: "Segoe UI", "Arial", sans-serif;
+      background-color: #f4f6f9;
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+
+    /* Contenitore principale */
+    #message {
+      background: #ffffff;
+      padding: 30px 40px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+      width: 100%;
+      max-width: 450px;
+    }
+
+    /* Intestazioni */
+    h2 {
+      text-align: center;
+      color: #666;
+      font-size: 1.2rem;
+      margin-bottom: 5px;
+      font-weight: 400;
+    }
+
+    h1 {
+      text-align: center;
+      color: #00008F; /* Blu AXA */
+      font-size: 1.6rem;
+      margin-top: 0;
+      margin-bottom: 25px;
+    }
+
+    /* Form e griglia per affiancare nome e cognome */
+    .form-row {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+      flex: 1;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #444;
+    }
+
+    input[type="text"], select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+    }
+
+    input[type="text"]:focus, select:focus {
+      border-color: #00008F;
+      outline: none;
+      box-shadow: 0 0 5px rgba(0, 0, 143, 0.2);
+    }
+
+    /* Area di azione (Pulsante chat) */
+    .action-area {
+      text-align: center;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+    }
+
+    .action-area h3 {
+      font-size: 1.1rem;
+      color: #333;
+      margin-bottom: 15px;
+    }
+
+    #liveagent_button {
+      border: 0;
+      cursor: pointer;
+      transition: transform 0.2s ease, filter 0.2s ease;
+      max-width: 250px;
+    }
+
+    #liveagent_button:hover {
+      transform: scale(1.05);
+      filter: brightness(1.1);
+    }
+  </style>
 </head>
 
 <body>
@@ -12,60 +116,59 @@
       <h2>Benvenuto</h2>
       <h1>ChatBot Letizia_PCC_BOT</h1>
   
-      <label for="name">Name:</label>
-      <input type="text" id="name" value="Nino" style="width: 75px" />
-      <input type="text" id="lastname" value="Malacchiei" style="width: 75px" />
-      <br><br>
-      <label for="email">Email:</label>
-      <input type="text" id="email" value="salvatore.cirincione@finconsgroup.com" style="width: 150px" />
-      <br><br>
-  
-      <label for="ndg">Ndg:</label>
-      <input type="text" id="ndg" value="0069016900069269" style="width: 160px" />
-      <br>
-      <br>
-      <label for="ndg">IVA/CF:</label>
-      <input type="text" id="cf_piva" value="MLCNNI81A01C352L" style="width: 160px" />
-      <br>
-      <br>
-      <label for="ndg">Multindg:</label>
-      <input type="text" id="multindg"  style="width: 160px" />
-      <br>
-      <br>
-  
-      <label for="pets">Choose your Home Page from:</label>
-      <select name="pets" id="page">
-        <option value="AAI">AAI</option>
-        <option value="AXA MPS">AXA MPS</option>
-        <option value="AMF">AMF</option>
-        <option value="Sinistri AAI">Sinistri AAI</option>
-        <option value="Sinistri AXA MPS">Sinistri AXA MPS</option>
-      </select>
-  
-      <br> <br> <h2> Clica per iniziare il Chat bot</h2>
-  
-      <img id="liveagent_button" onclick="bootstrapChat();" src="https://assistenza360.axa.it/images/project/chat/baloon-chatta.png" style="border: 0px none; cursor: pointer;" />
-  
-      <br> <br>
-  
-    </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="name">Nome:</label>
+          <input type="text" id="name" value="Maria Dora" />
+        </div>
+        <div class="form-group">
+          <label for="lastname">Cognome:</label>
+          <input type="text" id="lastname" value="Palmisano" />
+        </div>
+      </div>
 
-  <style type='text/css'>
-    .embeddedServiceHelpButton .helpButton .uiButton {
-      background-color: #00008F;
-      font-family: "Arial", sans-serif;
-    }
+      <div class="form-group">
+        <label for="email">Email:</label>
+        <input type="text" id="email" value="test_plmmdr6@axa.it" />
+      </div>
+  
+      <div class="form-group">
+        <label for="ndg">NDG:</label>
+        <input type="text" id="ndg" value="" placeholder="Inserisci NDG" />
+      </div>
 
-    .embeddedServiceHelpButton .helpButton .uiButton:focus {
-      outline: 1px solid #00008F;
-    }
-  </style>
+      <div class="form-group">
+        <label for="cf_piva">IVA/CF:</label>
+        <input type="text" id="cf_piva" value="PLMMDR67P41B300C" />
+      </div>
 
-  <!-- Nuovi script di configurazione Salesforce Embedded Messaging (Pre-Produzione) -->
+      <div class="form-group">
+        <label for="multindg">Multi-NDG:</label>
+        <input type="text" id="multindg" value="" />
+      </div>
+  
+      <div class="form-group">
+        <label for="page">Seleziona la pagina di provenienza:</label>
+        <select id="page">
+          <option value="AAI">AAI</option>
+          <option value="AXA MPS">AXA MPS</option>
+          <option value="AMF">AMF</option>
+          <option value="Sinistri AAI">Sinistri AAI</option>
+          <option value="Sinistri AXA MPS">Sinistri AXA MPS</option>
+        </select>
+      </div>
+  
+      <div class="action-area">
+        <h3>Clicca per avviare il ChatBot</h3>
+        <img id="liveagent_button" onclick="bootstrapChat();" src="https://assistenza360.axa.it/images/project/chat/baloon-chatta.png" alt="Avvia Chat" />
+      </div>
+  </div>
+
+  <!-- SCRIPT SALESFORCE EMBEDDED MESSAGING -->
   <script type='text/javascript'>
     function initEmbeddedMessaging() {
       try {
-        embeddedservice_bootstrap.settings.language = 'it'; // For example, enter 'en' or 'en-US'
+        embeddedservice_bootstrap.settings.language = 'it';
 
         embeddedservice_bootstrap.init(
           '00DFg00000I7vvF',
@@ -81,14 +184,54 @@
     };
 
     function bootstrapChat() {
-      // Apertura manuale della chat al click dell'immagine
-      if (window.embeddedservice_bootstrap) {
-        embeddedservice_bootstrap.utilAPI.launch();
+      // 1. Lettura dei valori dai campi
+      var page = document.getElementById('page').value;
+      var emailFromUser = document.getElementById('email').value;
+      var cf_piva = document.getElementById('cf_piva').value;
+      var nome = document.getElementById('name').value;
+      var cognome = document.getElementById('lastname').value;
+      var ndg = document.getElementById('ndg').value;
+      var multindg = document.getElementById('multindg').value;
+
+      var techCompany = 'AAI';
+      var isMultiNdg = 0;
+
+      if(ndg === '' && multindg === '') {
+        techCompany = 'AXA MPS';
+      } else if(ndg === '' && multindg !== '') {
+        ndg = multindg;
+        isMultiNdg = 1;
+      }
+
+      // 2. Passaggio dei parametri al widget di Salesforce
+      if (window.embeddedservice_bootstrap && window.embeddedservice_bootstrap.settings) {
+        embeddedservice_bootstrap.settings.prechatBackgroundData = {
+          "ndg": ndg,
+          "codiceFiscale": cf_piva,
+          "techCompany": techCompany,
+          "homePageFrom": page,
+          "firstName": nome,
+          "lastName": cognome,
+          "email": emailFromUser,
+          "isMultiNdg": isMultiNdg
+        };
+
+        // 3. Apertura del pannello chat
+        embeddedservice_bootstrap.utilAPI.launch()
+          .then(() => {
+            console.log('Chat avviata con successo');
+          })
+          .catch((err) => {
+            console.error('Errore nell\'apertura della chat:', err);
+            alert('La chat si sta ancora caricando o non è al momento disponibile. Riprova tra pochi secondi.');
+          });
+      } else {
+        alert('Il servizio di chat non è ancora pronto. Attendi qualche secondo e riprova.');
       }
     }
   </script>
+  
   <script type='text/javascript' src='https://axaitalia--pre.sandbox.my.site.com/ESWLetiziaPCC1760431838771/assets/js/bootstrap.min.js' onload='initEmbeddedMessaging()'></script>
 
 </body>
-
 </html>
