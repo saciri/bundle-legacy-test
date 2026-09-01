@@ -1,177 +1,7 @@
-<!DOCTYPE html>
-<html lang="it">
-
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CHAT AXA - Letizia_PCC_BOT</title>
-  
-  <style type='text/css'>
-    /* Stili generali e reset */
-    body {
-      font-family: "Segoe UI", "Arial", sans-serif;
-      background-color: #f4f6f9;
-      color: #333;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-      padding: 20px;
-    }
-
-    /* Contenitore principale */
-    #message {
-      background: #ffffff;
-      padding: 30px 40px;
-      border-radius: 12px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-      width: 100%;
-      max-width: 450px;
-    }
-
-    /* Intestazioni */
-    h2 {
-      text-align: center;
-      color: #666;
-      font-size: 1.2rem;
-      margin-bottom: 5px;
-      font-weight: 400;
-    }
-
-    h1 {
-      text-align: center;
-      color: #00008F; /* Blu AXA */
-      font-size: 1.6rem;
-      margin-top: 0;
-      margin-bottom: 25px;
-    }
-
-    /* Form e griglia */
-    .form-row {
-      display: flex;
-      gap: 15px;
-      margin-bottom: 15px;
-    }
-
-    .form-group {
-      margin-bottom: 15px;
-      flex: 1;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 6px;
-      font-weight: 600;
-      font-size: 0.9rem;
-      color: #444;
-    }
-
-    input[type="text"], select {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-sizing: border-box;
-      font-size: 0.95rem;
-      transition: all 0.3s ease;
-    }
-
-    input[type="text"]:focus, select:focus {
-      border-color: #00008F;
-      outline: none;
-      box-shadow: 0 0 5px rgba(0, 0, 143, 0.2);
-    }
-
-    /* Pulsante Chat Personalizzato CSS (Sostituisce l'immagine) */
-    .action-area {
-      text-align: center;
-      margin-top: 30px;
-      padding-top: 20px;
-      border-top: 1px solid #eee;
-    }
-
-    .btn-chat {
-      background-color: #00008F;
-      color: white;
-      border: none;
-      border-radius: 25px;
-      padding: 12px 25px;
-      font-size: 1.1rem;
-      font-weight: bold;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      box-shadow: 0 4px 10px rgba(0, 0, 143, 0.3);
-      transition: transform 0.2s ease, background-color 0.2s ease;
-      width: 100%;
-    }
-
-    .btn-chat:hover {
-      background-color: #000066;
-      transform: translateY(-2px);
-    }
-    
-    .btn-chat:active {
-      transform: translateY(0);
-    }
-  </style>
-</head>
-
-<body>
-  <div id="message"> 
-      <h2>Benvenuto</h2>
-      <h1>ChatBot Letizia_PCC_BOT</h1>
-  
-      <div class="form-row">
-        <div class="form-group">
-          <label for="name">Nome:</label>
-          <input type="text" id="name" value="Maria Dora" />
-        </div>
-        <div class="form-group">
-          <label for="lastname">Cognome:</label>
-          <input type="text" id="lastname" value="Palmisano" />
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label for="email">Email:</label>
-        <input type="text" id="email" value="salvatore.cirincione@finconsgroup.com" />
-      </div>
-  
-      <div class="form-group">
-        <label for="ndg">NDG:</label>
-        <!-- Inserito NDG richiesto come predefinito -->
-        <input type="text" id="ndg" value="test_plmmdr6@axa.it" />
-      </div>
-
-      <div class="form-group">
-        <label for="cf_piva">IVA/CF:</label>
-        <input type="text" id="cf_piva" value="PLMMDR67P41B300C" />
-      </div>
-
-      <div class="form-group">
-        <label for="multindg">Multi-NDG:</label>
-        <input type="text" id="multindg" value="" />
-      </div>
-  
-      <div class="form-group">
-        <label for="page">Pagina di provenienza:</label>
-        <select id="page">
-          <option value="AAI">AAI</option>
-          <option value="AXA MPS">AXA MPS</option>
-          <option value="AMF">AMF</option>
-          <option value="Sinistri AAI">Sinistri AAI</option>
-          <option value="Sinistri AXA MPS">Sinistri AXA MPS</option>
-        </select>
-      </div>
-  
-      <div class="action-area">
-        <!-- Bottone in puro CSS per evitare problemi di immagini non caricate -->
-        <button type="button" class="btn-chat" onclick="bootstrapChat();">
-          💬 Avvia la Chat
+<div class="action-area">
+        <!-- Il bottone parte disabilitato finché Salesforce non è pronto -->
+        <button type="button" id="btnCustomChat" class="btn-chat" onclick="bootstrapChat();" disabled style="background-color: #ccc; cursor: not-allowed;">
+          ⏳ Caricamento in corso...
         </button>
       </div>
   </div>
@@ -194,6 +24,28 @@
         console.error('Error loading Embedded Messaging: ', err);
       }
     };
+
+    // FUNZIONE CHE ATTENDE IL CARICAMENTO DI SALESFORCE
+    document.addEventListener("DOMContentLoaded", function() {
+      var customBtn = document.getElementById("btnCustomChat");
+      
+      var checkExist = setInterval(function() {
+        var embeddedMessaging = document.querySelector('embedded-messaging');
+        if (embeddedMessaging && embeddedMessaging.shadowRoot) {
+          var chatButton = embeddedMessaging.shadowRoot.querySelector('.embeddedMessagingConversationButton') || 
+                           embeddedMessaging.shadowRoot.querySelector('button');
+          
+          if (chatButton) {
+            clearInterval(checkExist); // Ferma il controllo
+            customBtn.disabled = false; // Abilita il pulsante
+            customBtn.style.backgroundColor = '#00008F';
+            customBtn.style.cursor = 'pointer';
+            customBtn.innerHTML = '💬 Avvia la Chat';
+            console.log("Chat Salesforce pronta all'uso!");
+          }
+        }
+      }, 500); // Controlla ogni mezzo secondo
+    });
 
     function bootstrapChat() {
       var page = document.getElementById('page').value;
@@ -234,15 +86,10 @@
         if (embeddedMessaging && embeddedMessaging.shadowRoot) {
           var chatButton = embeddedMessaging.shadowRoot.querySelector('.embeddedMessagingConversationButton') || 
                            embeddedMessaging.shadowRoot.querySelector('button');
-          
           if (chatButton) {
             chatButton.click();
-          } else {
-            alert("Il widget di chat non è ancora pronto. Attendi qualche istante.");
-          }
-        } else {
-          alert("I server della chat stanno ancora caricando. Attendi qualche secondo e riprova.");
-        }
+          } 
+        } 
       } catch (error) {
         console.error("Errore chat: ", error);
       }
@@ -250,6 +97,3 @@
   </script>
   
   <script type='text/javascript' src='https://axaitalia--pre.sandbox.my.site.com/ESWLetiziaPCC1760431838771/assets/js/bootstrap.min.js' onload='initEmbeddedMessaging()'></script>
-
-</body>
-</html>
