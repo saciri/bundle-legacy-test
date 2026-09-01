@@ -47,7 +47,7 @@
       margin-bottom: 25px;
     }
 
-    /* Form e griglia per affiancare nome e cognome */
+    /* Form e griglia */
     .form-row {
       display: flex;
       gap: 15px;
@@ -83,7 +83,7 @@
       box-shadow: 0 0 5px rgba(0, 0, 143, 0.2);
     }
 
-    /* Area di azione (Pulsante chat) */
+    /* Pulsante Chat Personalizzato CSS (Sostituisce l'immagine) */
     .action-area {
       text-align: center;
       margin-top: 30px;
@@ -91,22 +91,31 @@
       border-top: 1px solid #eee;
     }
 
-    .action-area h3 {
+    .btn-chat {
+      background-color: #00008F;
+      color: white;
+      border: none;
+      border-radius: 25px;
+      padding: 12px 25px;
       font-size: 1.1rem;
-      color: #333;
-      margin-bottom: 15px;
-    }
-
-    #liveagent_button {
-      border: 0;
+      font-weight: bold;
       cursor: pointer;
-      transition: transform 0.2s ease, filter 0.2s ease;
-      max-width: 250px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 143, 0.3);
+      transition: transform 0.2s ease, background-color 0.2s ease;
+      width: 100%;
     }
 
-    #liveagent_button:hover {
-      transform: scale(1.05);
-      filter: brightness(1.1);
+    .btn-chat:hover {
+      background-color: #000066;
+      transform: translateY(-2px);
+    }
+    
+    .btn-chat:active {
+      transform: translateY(0);
     }
   </style>
 </head>
@@ -129,12 +138,13 @@
 
       <div class="form-group">
         <label for="email">Email:</label>
-        <input type="text" id="email" value="test_plmmdr6@axa.it" />
+        <input type="text" id="email" value="salvatore.cirincione@finconsgroup.com" />
       </div>
   
       <div class="form-group">
         <label for="ndg">NDG:</label>
-        <input type="text" id="ndg" value="" placeholder="Inserisci NDG" />
+        <!-- Inserito NDG richiesto come predefinito -->
+        <input type="text" id="ndg" value="test_plmmdr6@axa.it" />
       </div>
 
       <div class="form-group">
@@ -148,7 +158,7 @@
       </div>
   
       <div class="form-group">
-        <label for="page">Seleziona la pagina di provenienza:</label>
+        <label for="page">Pagina di provenienza:</label>
         <select id="page">
           <option value="AAI">AAI</option>
           <option value="AXA MPS">AXA MPS</option>
@@ -159,8 +169,10 @@
       </div>
   
       <div class="action-area">
-        <h3>Clicca per avviare il ChatBot</h3>
-        <img id="liveagent_button" onclick="bootstrapChat();" src="https://assistenza360.axa.it/images/project/chat/baloon-chatta.png" alt="Avvia Chat" />
+        <!-- Bottone in puro CSS per evitare problemi di immagini non caricate -->
+        <button type="button" class="btn-chat" onclick="bootstrapChat();">
+          💬 Avvia la Chat
+        </button>
       </div>
   </div>
 
@@ -184,7 +196,6 @@
     };
 
     function bootstrapChat() {
-      // 1. Lettura dei valori dai campi
       var page = document.getElementById('page').value;
       var emailFromUser = document.getElementById('email').value;
       var cf_piva = document.getElementById('cf_piva').value;
@@ -194,39 +205,46 @@
       var multindg = document.getElementById('multindg').value;
 
       var techCompany = 'AAI';
-      var isMultiNdg = 0;
+      var isMultiNdg = '0';
 
       if(ndg === '' && multindg === '') {
         techCompany = 'AXA MPS';
       } else if(ndg === '' && multindg !== '') {
         ndg = multindg;
-        isMultiNdg = 1;
+        isMultiNdg = '1';
       }
 
-      // 2. Passaggio dei parametri al widget di Salesforce
-      if (window.embeddedservice_bootstrap && window.embeddedservice_bootstrap.settings) {
-        embeddedservice_bootstrap.settings.prechatBackgroundData = {
-          "ndg": ndg,
-          "codiceFiscale": cf_piva,
-          "techCompany": techCompany,
-          "homePageFrom": page,
-          "firstName": nome,
-          "lastName": cognome,
-          "email": emailFromUser,
-          "isMultiNdg": isMultiNdg
-        };
-
-        // 3. Apertura del pannello chat
-        embeddedservice_bootstrap.utilAPI.launch()
-          .then(() => {
-            console.log('Chat avviata con successo');
-          })
-          .catch((err) => {
-            console.error('Errore nell\'apertura della chat:', err);
-            alert('La chat si sta ancora caricando o non è al momento disponibile. Riprova tra pochi secondi.');
+      try {
+        // Passaggio Parametri a Salesforce
+        if (window.embeddedservice_bootstrap && window.embeddedservice_bootstrap.prechatAPI) {
+          embeddedservice_bootstrap.prechatAPI.setHiddenPrechatFields({
+            "ndg": ndg,
+            "Codice_Fiscale_o_IVA__c": cf_piva,
+            "techCompany": techCompany,
+            "homePageFrom__c": page,
+            "Name__c": nome,
+            "LastName__c": cognome,
+            "Email__c": emailFromUser,
+            "IsMultiNdg__c": isMultiNdg
           });
-      } else {
-        alert('Il servizio di chat non è ancora pronto. Attendi qualche secondo e riprova.');
+        }
+
+        // Apertura Chat (Simula il click sul widget nativo di Salesforce)
+        var embeddedMessaging = document.querySelector('embedded-messaging');
+        if (embeddedMessaging && embeddedMessaging.shadowRoot) {
+          var chatButton = embeddedMessaging.shadowRoot.querySelector('.embeddedMessagingConversationButton') || 
+                           embeddedMessaging.shadowRoot.querySelector('button');
+          
+          if (chatButton) {
+            chatButton.click();
+          } else {
+            alert("Il widget di chat non è ancora pronto. Attendi qualche istante.");
+          }
+        } else {
+          alert("I server della chat stanno ancora caricando. Attendi qualche secondo e riprova.");
+        }
+      } catch (error) {
+        console.error("Errore chat: ", error);
       }
     }
   </script>
