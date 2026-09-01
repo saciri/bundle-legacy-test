@@ -1,12 +1,4 @@
-<div class="action-area">
-        <!-- Il bottone parte disabilitato finché Salesforce non è pronto -->
-        <button type="button" id="btnCustomChat" class="btn-chat" onclick="bootstrapChat();" disabled style="background-color: #ccc; cursor: not-allowed;">
-          ⏳ Caricamento in corso...
-        </button>
-      </div>
-  </div>
-
-  <!-- SCRIPT SALESFORCE EMBEDDED MESSAGING -->
+<!-- SCRIPT SALESFORCE EMBEDDED MESSAGING (Forzato) -->
   <script type='text/javascript'>
     function initEmbeddedMessaging() {
       try {
@@ -20,32 +12,19 @@
             scrt2URL: 'https://axaitalia--pre.sandbox.my.salesforce-scrt.com'
           }
         );
+
+        // Abilita comunque il pulsante dopo l'init di Salesforce
+        var customBtn = document.getElementById("btnCustomChat");
+        customBtn.disabled = false;
+        customBtn.style.backgroundColor = '#00008F';
+        customBtn.style.cursor = 'pointer';
+        customBtn.innerHTML = '💬 Avvia la Chat';
+        console.log("Inizializzazione Embedded Messaging completata.");
+
       } catch (err) {
         console.error('Error loading Embedded Messaging: ', err);
       }
     };
-
-    // FUNZIONE CHE ATTENDE IL CARICAMENTO DI SALESFORCE
-    document.addEventListener("DOMContentLoaded", function() {
-      var customBtn = document.getElementById("btnCustomChat");
-      
-      var checkExist = setInterval(function() {
-        var embeddedMessaging = document.querySelector('embedded-messaging');
-        if (embeddedMessaging && embeddedMessaging.shadowRoot) {
-          var chatButton = embeddedMessaging.shadowRoot.querySelector('.embeddedMessagingConversationButton') || 
-                           embeddedMessaging.shadowRoot.querySelector('button');
-          
-          if (chatButton) {
-            clearInterval(checkExist); // Ferma il controllo
-            customBtn.disabled = false; // Abilita il pulsante
-            customBtn.style.backgroundColor = '#00008F';
-            customBtn.style.cursor = 'pointer';
-            customBtn.innerHTML = '💬 Avvia la Chat';
-            console.log("Chat Salesforce pronta all'uso!");
-          }
-        }
-      }, 500); // Controlla ogni mezzo secondo
-    });
 
     function bootstrapChat() {
       var page = document.getElementById('page').value;
@@ -67,7 +46,7 @@
       }
 
       try {
-        // Passaggio Parametri a Salesforce
+        // 1. Passaggio dei parametri nascosti (Hidden Pre-Chat API)
         if (window.embeddedservice_bootstrap && window.embeddedservice_bootstrap.prechatAPI) {
           embeddedservice_bootstrap.prechatAPI.setHiddenPrechatFields({
             "ndg": ndg,
@@ -81,17 +60,24 @@
           });
         }
 
-        // Apertura Chat (Simula il click sul widget nativo di Salesforce)
-        var embeddedMessaging = document.querySelector('embedded-messaging');
-        if (embeddedMessaging && embeddedMessaging.shadowRoot) {
-          var chatButton = embeddedMessaging.shadowRoot.querySelector('.embeddedMessagingConversationButton') || 
-                           embeddedMessaging.shadowRoot.querySelector('button');
-          if (chatButton) {
-            chatButton.click();
-          } 
-        } 
+        // 2. Metodo alternativo di apertura tramite bootstrap API (se disponibile nella versione)
+        if (window.embeddedservice_bootstrap && typeof embeddedservice_bootstrap.utilAPI !== 'undefined' && typeof embeddedservice_bootstrap.utilAPI.launch === 'function') {
+          embeddedservice_bootstrap.utilAPI.launch();
+        } else {
+          // Fallback sul click nativo se presente
+          var embeddedMessaging = document.querySelector('embedded-messaging');
+          if (embeddedMessaging && embeddedMessaging.shadowRoot) {
+            var chatButton = embeddedMessaging.shadowRoot.querySelector('.embeddedMessagingConversationButton') || 
+                             embeddedMessaging.shadowRoot.querySelector('button');
+            if (chatButton) {
+              chatButton.click();
+            } else {
+              console.warn("Elemento chat nativo non trovato nel DOM, verifica la console per errori di rete/CORS.");
+            }
+          }
+        }
       } catch (error) {
-        console.error("Errore chat: ", error);
+        console.error("Errore durante l'avvio della chat: ", error);
       }
     }
   </script>
